@@ -1,0 +1,51 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# C extensions
+*.so
+
+# Environments
+.venv/
+venv/
+ENV/
+env/
+*.venv
+
+# Project Data (Stockage local temporaire)
+data/raw/*
+data/processed/*
+!data/raw/.gitkeep
+!data/processed/.gitkeep
+
+# Environment variables & secrets
+.env
+*.env
+.aws/
+secrets.yaml
+
+# MLflow & Training artifacts
+mlruns/
+.mlflow/
+*.sqlite
+
+# Evidently AI cache
+.evidently/
+
+# Testing & Coverage
+.pytest_cache/
+.coverage
+htmlcov/
+
+# IDE & OS specific
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+
+# Terraform
+terraform/.terraform/
+*.tfstate
+*.tfstate.backup
+.terraform.lock.hcl
