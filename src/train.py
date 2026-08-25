@@ -146,27 +146,34 @@ class Trainer:
             if cond_f1 and cond_di:
                 logger.info("✅ CHALLENGER VALIDÉ : Promotion du modèle en Production !")
                 
-                # 1. Sauvegarde du modèle sous la baseline active
                 os.makedirs("models", exist_ok=True)
                 joblib.dump(self.best_model, "models/xgboost_baseline.joblib")
 
-                # 2. Calcul dynamique du numéro de version (v1.0 -> v2.0 -> v3.0...)
+                # 1. Lecture de la version actuelle dans metadata.json
                 metadata_path = "models/metadata.json"
-                current_version = 1
+                major, minor = 1, 0
                 
                 if os.path.exists(metadata_path):
                     try:
                         with open(metadata_path, "r", encoding="utf-8") as f:
                             old_meta = json.load(f)
-                            old_v_str = old_meta.get("model_version", "v1.0")
-                            # Extraction du numéro majeur (ex: "v2.0" -> 2)
-                            current_version = int(old_v_str.lower().replace("v", "").split(".")[0])
+                            old_v_str = old_meta.get("model_version", "v1.0").lower().replace("v", "")
+                            major, minor = map(int, old_v_str.split("."))
                     except Exception as e:
-                        logger.warning(f"Impossible de lire l'ancienne version, réinitialisation à v1 ({e})")
+                        logger.warning(f"Erreur de lecture de la version actuelle, fallback v1.0 ({e})")
 
-                next_version_str = f"v{current_version + 1}.0"
+                # 2. Règle de décision : Version Majeure vs Version Mineure
+                # Exemple : Saut majeur si le Disparate Impact gagne +0.10 ou si l'amélioration F1 est très forte
+                is_major_upgrade = (v2_di - v1_di) >= 0.10
 
-                # 3. Mise à jour du registre local metadata.json
+                if is_major_upgrade:
+                    next_version_str = f"v{major + 1}.0"  # Ex: v1.2 -> v2.0
+                    logger.info(f"🚀 Gain d'équité majeur (+{v2_di - v1_di:.2f}) : Passage en version majeure {next_version_str}")
+                else:
+                    next_version_str = f"v{major}.{minor + 1}"  # Ex: v1.0 -> v1.1
+                    logger.info(f"🔄 Ré-entraînement de routine post-drift : Passage en version mineure {next_version_str}")
+
+                # 3. Sauvegarde dans metadata.json
                 metadata = {
                     "model_version": next_version_str,
                     "model_name": f"XGBoost Mitigated ({next_version_str})",
@@ -179,9 +186,7 @@ class Trainer:
                 with open(metadata_path, "w", encoding="utf-8") as f:
                     json.dump(metadata, f, indent=4)
 
-                logger.info(f"🚀 Nouveau modèle promu avec succès : {next_version_str} !")
-
-                # 4. Logs MLflow
+                # 4. Tracking MLflow
                 mlflow.log_params(self.best_params)
                 mlflow.log_metric("f1_score", v2_f1)
                 mlflow.log_metric("disparate_impact", v2_di)

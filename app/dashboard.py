@@ -1,4 +1,5 @@
 from datetime import datetime
+import json
 import os
 from glob import glob
 import pandas as pd
@@ -48,9 +49,34 @@ def load_latest_monitoring_report():
     return None, None
 
 
+# Lecture dynamique des métadonnées du modèle (Metadata JSON Registry)
+def load_model_metadata():
+    metadata_path = "models/metadata.json"
+    if os.path.exists(metadata_path):
+        try:
+            with open(metadata_path, "r", encoding="utf-8") as f:
+                return json.load(f)
+        except Exception:
+            pass
+    return {
+        "model_version": "v1.0",
+        "model_name": "XGBoost Baseline",
+        "status": "Production",
+        "f1_score": 0.5023,
+        "disparate_impact": 0.6500,
+    }
+
+
 df_hist = load_historical_data()
 df_pred, pred_filename, last_run_datetime = load_latest_predictions()
 drift_html, drift_filename = load_latest_monitoring_report()
+
+# Récupération dynamique des variables issues du JSON
+model_meta = load_model_metadata()
+active_version = model_meta.get("model_version", "v1.0")
+active_model_name = model_meta.get("model_name", "XGBoost Baseline")
+active_f1 = model_meta.get("f1_score", 0.5023)
+active_di = model_meta.get("disparate_impact", 0.6500)
 
 # ==================== BARRE LATÉRALE ====================
 st.sidebar.image("https://img.icons8.com/color/96/movie-projector.png", width=80)
@@ -62,11 +88,11 @@ st.sidebar.caption(f"🕒 **Heure actuelle :** {now.strftime('%d/%m/%Y')} — `{
 
 st.sidebar.markdown("---")
 
-# 2. Informations du Modèle & Dernier Run Daily Pipeline
+# 2. Informations du Modèle & Dernier Run Daily Pipeline (DYNAMIQUE)
 if last_run_datetime is not None:
     formatted_run = last_run_datetime.strftime("%d/%m/%Y à %H:%M")
     st.sidebar.info(
-        f"**Modèle actif :** XGBoost Baseline v1.0\n\n"
+        f"**Modèle actif :** {active_model_name} `{active_version}`\n\n"
         f"**Statut :** Production (Batch Daily)\n\n"
         f"🚀 **Dernier run `daily_pipeline` :**\n"
         f"🗓️ {formatted_run}\n"
@@ -75,9 +101,9 @@ if last_run_datetime is not None:
     )
 else:
     st.sidebar.info(
-        "**Modèle actif :** XGBoost Baseline v1.0\n\n"
-        "**Statut :** Production (Batch Daily)\n\n"
-        "🚀 **Dernier run `daily_pipeline` :** Aucun batch trouvé"
+        f"**Modèle actif :** {active_model_name} `{active_version}`\n\n"
+        f"**Statut :** Production (Batch Daily)\n\n"
+        f"🚀 **Dernier run `daily_pipeline` :** Aucun batch trouvé"
     )
 
 st.sidebar.markdown("---")
@@ -122,7 +148,7 @@ with tab1:
 
         # Affichage en grille de 4 colonnes
         cols_per_row = 4
-        
+
         for i in range(0, len(df_sorted), cols_per_row):
             cols = st.columns(cols_per_row)
             for j in range(cols_per_row):
@@ -132,7 +158,7 @@ with tab1:
                         with st.container(border=True):
                             # 1. Traitement et affichage de l'affiche TMDB
                             raw_path = str(movie.get("poster_path", "")).strip()
-                            
+
                             if raw_path and raw_path not in ["None", "nan"]:
                                 clean_path = raw_path if raw_path.startswith("/") else f"/{raw_path}"
                                 poster_url = f"https://image.tmdb.org/t/p/w500{clean_path}"
@@ -146,7 +172,7 @@ with tab1:
                             # 3. Badge Prédiction Hit / Non-Hit
                             prob = movie.get("popularity_probability", 0.0)
                             is_hit = movie.get("predicted_is_popular", False)
-                            
+
                             if is_hit:
                                 st.success(f"🔥 **HIT** ({prob:.0%})")
                             else:
@@ -219,7 +245,7 @@ with tab2:
         with col_f2:
             st.markdown("#### 🏳️‍🌈 Thématique LGBT / Gay")
             kw_col = "kw_gay_theme" if "kw_gay_theme" in df_hist.columns else ("kw_lgbt_theme" if "kw_lgbt_theme" in df_hist.columns else None)
-            
+
             if kw_col:
                 lgbt_counts = (
                     df_hist.groupby(kw_col)["is_popular"]
@@ -376,11 +402,12 @@ with tab2:
 # ==================== TAB 3 : DRIFT & PERFORMANCE ====================
 with tab3:
     st.subheader("📈 Suivi de Dérive des Données (Evidently AI)")
-    
+
     col_m1, col_m2, col_m3 = st.columns(3)
-    col_m1.metric("Modèle Champion", "XGBoost v1.0")
-    col_m2.metric("F1-Score Baseline", "0.5023")
-    col_m3.metric("ROC-AUC Baseline", "0.6862")
+    # Remplacement des valeurs fixes par les variables dynamiques de metadata.json
+    col_m1.metric("Modèle Champion", f"{active_model_name} ({active_version})")
+    col_m2.metric("F1-Score Actif", f"{active_f1:.4f}")
+    col_m3.metric("Disparate Impact", f"{active_di:.4f}")
 
     st.markdown("---")
 
@@ -389,5 +416,3 @@ with tab3:
         components.html(drift_html, height=1000, scrolling=True)
     else:
         st.warning("Aucun rapport de dérive trouvé dans `data/monitoring/`. Exécutez `python src/monitoring.py` pour le générer.")
-
-
