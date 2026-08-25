@@ -166,8 +166,15 @@ with tab1:
                             else:
                                 st.image("https://placehold.co/300x450/161B22/E6EDF3?text=No+Poster", use_container_width=True)
 
-                            # 2. Titre du film
-                            st.markdown(f"#### {movie.get('title', 'Sans titre')}")
+                            # 2. Titre du film (transformé en lien cliquable TMDB)
+                            title_str = movie.get("title", "Sans titre")
+                            movie_id = movie.get("movie_id", movie.get("id", None))
+
+                            if pd.notna(movie_id) and str(movie_id).strip() not in ["", "None", "nan"]:
+                                tmdb_url = f"https://www.themoviedb.org/movie/{int(movie_id)}"
+                                st.markdown(f"#### [{title_str}]({tmdb_url})")
+                            else:
+                                st.markdown(f"#### {title_str}")
 
                             # 3. Badge Prédiction Hit / Non-Hit
                             prob = movie.get("popularity_probability", 0.0)
