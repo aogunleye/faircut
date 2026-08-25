@@ -11,12 +11,12 @@ import streamlit.components.v1 as components
 # Configuration de la page
 st.set_page_config(
     page_title="FairCut — Control Room",
-    page_icon="🎬",
+    page_icon=":material/movie:",
     layout="wide",
 )
 
 # Header
-st.title("🎬 FairCut — Bias Monitoring & MLOps Control Room")
+st.title(" :material/movie: FairCut — Bias Monitoring & MLOps Control Room")
 st.caption("Because not every bias deserves to make the cut.")
 
 
@@ -84,7 +84,7 @@ st.sidebar.title("Configuration ML")
 
 # 1. Heure en live
 now = datetime.now()
-st.sidebar.caption(f"🕒 **Heure actuelle :** {now.strftime('%d/%m/%Y')} — `{now.strftime('%H:%M:%S')}`")
+st.sidebar.caption(f" :material/schedule: **Heure actuelle :** {now.strftime('%d/%m/%Y')} — `{now.strftime('%H:%M:%S')}`")
 
 st.sidebar.markdown("---")
 
@@ -94,29 +94,33 @@ if last_run_datetime is not None:
     st.sidebar.info(
         f"**Modèle actif :** {active_model_name} `{active_version}`\n\n"
         f"**Statut :** Production (Batch Daily)\n\n"
-        f"🚀 **Dernier run `daily_pipeline` :**\n"
-        f"🗓️ {formatted_run}\n"
-        f"⏱️ **Durée exécution :** ~1m 45s\n"
-        f"📂 **Fichier généré :** `{pred_filename}`"
+        f" :material/rocket_launch: **Dernier run `daily_pipeline` :**\n"
+        f" :material/calendar_today: {formatted_run}\n"
+        f" :material/timer: **Durée exécution :** ~1m 45s\n"
+        f" :material/folder: **Fichier généré :** `{pred_filename}`"
     )
 else:
     st.sidebar.info(
         f"**Modèle actif :** {active_model_name} `{active_version}`\n\n"
         f"**Statut :** Production (Batch Daily)\n\n"
-        f"🚀 **Dernier run `daily_pipeline` :** Aucun batch trouvé"
+        f" :material/rocket_launch: **Dernier run `daily_pipeline` :** Aucun batch trouvé"
     )
 
 st.sidebar.markdown("---")
-if st.sidebar.button("🔄 Rafraîchir l'heure"):
+if st.sidebar.button("Rafraîchir l'heure", icon=":material/refresh:"):
     st.rerun()
 
 # Navigation Onglets
-tab1, tab2, tab3 = st.tabs(["🚀 Live Predictions", "⚖️ Equity Radar (Fairness)", "📉 Drift & Performance (Evidently)"])
+tab1, tab2, tab3 = st.tabs([
+    " :material/rocket_launch: Live Predictions",
+    " :material/balance: Equity Radar (Fairness)",
+    " :material/analytics: Drift & Performance (Evidently)"
+])
 
 # ==================== TAB 1 : LIVE PREDICTIONS ====================
 with tab1:
     if df_pred is not None:
-        st.subheader(f"📊 Prédictions du lot quotidien (`{pred_filename}`)")
+        st.subheader(f" :material/bar_chart: Prédictions du lot quotidien (`{pred_filename}`)")
 
         # Métriques globales du batch
         col1, col2, col3 = st.columns(3)
@@ -131,7 +135,7 @@ with tab1:
         st.markdown("---")
 
         # Distribution & Vue d'ensemble en haut
-        with st.expander("📈 Voir la distribution des scores de ce lot", expanded=False):
+        with st.expander(" :material/show_chart: Voir la distribution des scores de ce lot", expanded=False):
             fig = px.histogram(
                 df_pred,
                 x="popularity_probability",
@@ -141,7 +145,7 @@ with tab1:
             )
             st.plotly_chart(fig, use_container_width=True)
 
-        st.markdown("### 🎬 Catalogue des films analysés")
+        st.markdown("###  :material/movie: Catalogue des films analysés")
 
         # Tri par probabilité décroissante
         df_sorted = df_pred.sort_values("popularity_probability", ascending=False).reset_index(drop=True)
@@ -181,9 +185,9 @@ with tab1:
                             is_hit = movie.get("predicted_is_popular", False)
 
                             if is_hit:
-                                st.success(f"🔥 **HIT** ({prob:.0%})")
+                                st.success(f" :material/local_fire_department: **HIT** ({prob:.0%})")
                             else:
-                                st.error(f"📉 **FLOP / NICHE** ({prob:.0%})")
+                                st.error(f" :material/trending_down: **FLOP / NICHE** ({prob:.0%})")
 
                             # 4. Barre de progression de la probabilité
                             st.progress(float(prob))
@@ -195,24 +199,24 @@ with tab1:
                             if pd.isna(certif) or str(certif).strip() in ["", "None", "nan"]:
                                 certif = "NR"
 
-                            st.caption(f"🗓️ **Sortie :** {rel_date}")
-                            st.caption(f"🌐 **Langue :** `{lang}` | 🔞 **Certif :** `{certif}`")
+                            st.caption(f" :material/calendar_month: **Sortie :** {rel_date}")
+                            st.caption(f" :material/language: **Langue :** `{lang}` |  :material/no_adult_content: **Certif :** `{certif}`")
 
     else:
         st.warning("Aucun fichier de prédiction quotidien trouvé dans `data/processed/`.")
 
 # ==================== TAB 2 : EQUITY RADAR ====================
 with tab2:
-    st.subheader("⚖️ Analyse de l'Équité Algorithmique (Fairlearn)")
+    st.subheader(" :material/balance: Analyse de l'Équité Algorithmique (Fairlearn)")
 
     if df_hist is not None:
         # Première rangée : Attributs Protégés Principaux (Genre, Langue, Studio, Thématique LGBT)
-        st.markdown("### 🎯 Attributs Protégés & Diversité")
+        st.markdown("###  :material/center_focus_strong: Attributs Protégés & Diversité")
         col_f1, col_f2, col_f3, col_f4 = st.columns(4)
 
         # 1. Disparate Impact : Genre du Réalisateur
         with col_f1:
-            st.markdown("#### 🎬 Réalisation (Femmes/Hommes)")
+            st.markdown("####  :material/movie_filter: Réalisation (Femmes/Hommes)")
             if "director_gender" in df_hist.columns:
                 df_gender = df_hist[df_hist["director_gender"].isin([1, 2])].copy()
                 gender_counts = (
@@ -242,15 +246,15 @@ with tab2:
                 di_gender = sr_female / sr_male if sr_male > 0 else 0
 
                 if di_gender < 0.8:
-                    st.error(f"⚠️ **Alerte Biais : {di_gender:.2f}** (Sous-représentation des femmes)")
+                    st.error(f" :material/warning: **Alerte Biais : {di_gender:.2f}** (Sous-représentation des femmes)")
                 else:
-                    st.success(f"✅ **Parité Conforme : {di_gender:.2f}**")
+                    st.success(f" :material/check_circle: **Parité Conforme : {di_gender:.2f}**")
             else:
                 st.info("Attribut `director_gender` absent.")
 
         # 2. Disparate Impact : Biais Thématique LGBT / Queer
         with col_f2:
-            st.markdown("#### 🏳️‍🌈 Thématique LGBT / Gay")
+            st.markdown("####  :material/diversity_3: Thématique LGBT / Gay")
             kw_col = "kw_gay_theme" if "kw_gay_theme" in df_hist.columns else ("kw_lgbt_theme" if "kw_lgbt_theme" in df_hist.columns else None)
 
             if kw_col:
@@ -281,15 +285,15 @@ with tab2:
                 di_lgbt = sr_lgbt / sr_other if sr_other > 0 else 0
 
                 if di_lgbt < 0.8:
-                    st.error(f"⚠️ **Alerte Biais LGBT : {di_lgbt:.2f}** (Pénalisation algorithmique)")
+                    st.error(f" :material/warning: **Alerte Biais LGBT : {di_lgbt:.2f}** (Pénalisation algorithmique)")
                 else:
-                    st.success(f"✅ **Disparate Impact Conforme : {di_lgbt:.2f}**")
+                    st.success(f" :material/check_circle: **Disparate Impact Conforme : {di_lgbt:.2f}**")
             else:
                 st.info("Attribut `kw_gay_theme` non détecté.")
 
         # 3. Disparate Impact : Langues
         with col_f3:
-            st.markdown("#### 🌐 Origine Linguistique")
+            st.markdown("####  :material/public: Origine Linguistique")
             if "protected_is_english" in df_hist.columns:
                 lang_counts = (
                     df_hist.groupby("protected_is_english")["is_popular"]
@@ -317,15 +321,15 @@ with tab2:
                 di_lang = sr_non_en / sr_en if sr_en > 0 else 0
 
                 if di_lang < 0.8:
-                    st.error(f"⚠️ **Alerte Biais : {di_lang:.2f}** (Pénalisation non-anglophone)")
+                    st.error(f" :material/warning: **Alerte Biais : {di_lang:.2f}** (Pénalisation non-anglophone)")
                 else:
-                    st.success(f"✅ **Disparate Impact Conforme : {di_lang:.2f}**")
+                    st.success(f" :material/check_circle: **Disparate Impact Conforme : {di_lang:.2f}**")
             else:
                 st.info("Attribut `protected_is_english` absent.")
 
         # 4. Disparate Impact : Studios
         with col_f4:
-            st.markdown("#### 🏢 Type de Studio")
+            st.markdown("####  :material/corporate_fare: Type de Studio")
             if "protected_is_major_studio" in df_hist.columns:
                 major_counts = (
                     df_hist.groupby("protected_is_major_studio")["is_popular"]
@@ -353,21 +357,21 @@ with tab2:
                 di_major = sr_ind / sr_maj if sr_maj > 0 else 0
 
                 if di_major < 0.8:
-                    st.error(f"⚠️ **Alerte Biais : {di_major:.2f}** (Désavantage indépendants)")
+                    st.error(f" :material/warning: **Alerte Biais : {di_major:.2f}** (Désavantage indépendants)")
                 else:
-                    st.success(f"✅ **Disparate Impact Conforme : {di_major:.2f}**")
+                    st.success(f" :material/check_circle: **Disparate Impact Conforme : {di_major:.2f}**")
             else:
                 st.info("Attribut `protected_is_major_studio` absent.")
 
         st.markdown("---")
 
         # Deuxième rangée : Attributs Complémentaires (Classification & Portée internationale)
-        st.markdown("### 🔍 Attributs Complémentaires (Classification & Distribution)")
+        st.markdown("###  :material/search: Attributs Complémentaires (Classification & Distribution)")
         col_f5, col_f6 = st.columns(2)
 
         # 5. Certification (PG-13, R, NR...)
         with col_f5:
-            st.markdown("#### 🔞 Certification & Classification d'Âge")
+            st.markdown("####  :material/explicit: Certification & Classification d'Âge")
             if "certification" in df_hist.columns:
                 cert_counts = (
                     df_hist.groupby("certification")["is_popular"]
@@ -386,11 +390,11 @@ with tab2:
                     color_continuous_scale="Viridis",
                 )
                 st.plotly_chart(fig_cert, use_container_width=True)
-                st.caption("💡 **Analyse :** Évalue si le modèle favorise les classifications familiales par rapport aux contenus matures.")
+                st.caption(" :material/lightbulb: **Analyse :** Évalue si le modèle favorise les classifications familiales par rapport aux contenus matures.")
 
         # 6. Portée Internationale (Nombre de Traductions)
         with col_f6:
-            st.markdown("#### 🌍 Portée Internationale (Traductions)")
+            st.markdown("####  :material/g_translate: Portée Internationale (Traductions)")
             if "translation_count" in df_hist.columns:
                 fig_trans = px.box(
                     df_hist,
@@ -401,14 +405,14 @@ with tab2:
                     color="is_popular",
                 )
                 st.plotly_chart(fig_trans, use_container_width=True)
-                st.caption("💡 **Analyse :** Mesure la pénalité subie par les œuvres à faible couverture internationale au moment de leur sortie.")
+                st.caption(" :material/lightbulb: **Analyse :** Mesure la pénalité subie par les œuvres à faible couverture internationale au moment de leur sortie.")
 
     else:
         st.warning("Données historiques indisponibles pour afficher l'Equity Radar.")
 
 # ==================== TAB 3 : DRIFT & PERFORMANCE ====================
 with tab3:
-    st.subheader("📈 Suivi de Dérive des Données (Evidently AI)")
+    st.subheader(" :material/trending_up: Suivi de Dérive des Données (Evidently AI)")
 
     col_m1, col_m2, col_m3 = st.columns(3)
     # Remplacement des valeurs fixes par les variables dynamiques de metadata.json
@@ -419,7 +423,7 @@ with tab3:
     st.markdown("---")
 
     if drift_html is not None:
-        st.caption(f"📄 **Rapport interactif généré par Evidently AI :** `{drift_filename}`")
+        st.caption(f" :material/description: **Rapport interactif généré par Evidently AI :** `{drift_filename}`")
         components.html(drift_html, height=1000, scrolling=True)
     else:
         st.warning("Aucun rapport de dérive trouvé dans `data/monitoring/`. Exécutez `python src/monitoring.py` pour le générer.")
