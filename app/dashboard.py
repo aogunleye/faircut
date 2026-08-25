@@ -4,6 +4,7 @@ import pandas as pd
 import plotly.express as px
 import plotly.graph_objects as go
 import streamlit as st
+import streamlit.components.v1 as components
 
 # Configuration de la page
 st.set_page_config(
@@ -25,7 +26,7 @@ st.markdown(
 )
 
 # Header
-st.markdown('<div class="main-title">🎬 FairCut — Bias Monitoring & MLOps</div>', unsafe_allow_html=True)
+st.markdown('<div class="main-title">🎬 FairCut — Bias Monitoring & MLOps Control Room</div>', unsafe_allow_html=True)
 st.markdown(
     '<div class="sub-title">Because not every bias deserves to make the cut.</div>',
     unsafe_allow_html=True,
@@ -50,16 +51,26 @@ def load_latest_predictions():
     return None, None
 
 
+def load_latest_monitoring_report():
+    files = sorted(glob("data/monitoring/drift_report_*.html"))
+    if files:
+        latest_report = files[-1]
+        with open(latest_report, "r", encoding="utf-8") as f:
+            return f.read(), os.path.basename(latest_report)
+    return None, None
+
+
 df_hist = load_historical_data()
 df_pred, pred_filename = load_latest_predictions()
+drift_html, drift_filename = load_latest_monitoring_report()
 
 # Barre latérale
 st.sidebar.image("https://img.icons8.com/color/96/movie-projector.png", width=80)
 st.sidebar.title("Configuration ML")
-st.sidebar.info("**Modèle actif :** XGBoost Baseline v1.0\n\n**Statut :** Production")
+st.sidebar.info("**Modèle actif :** XGBoost Baseline v1.0\n\n**Statut :** Production (Batch Daily)")
 
 # Navigation Onglets
-tab1, tab2, tab3 = st.tabs(["🚀 Live Predictions", "⚖️ Equity Radar (Fairness)", "📈 Model Performance"])
+tab1, tab2, tab3 = st.tabs(["🚀 Live Predictions", "⚖️ Equity Radar (Fairness)", "📉 Drift & Performance (Evidently)"])
 
 # ==================== TAB 1 : LIVE PREDICTIONS ====================
 with tab1:
@@ -89,8 +100,12 @@ with tab1:
                 "popularity_probability",
                 "predicted_is_popular",
             ]
+            
+            # S'assurer que les colonnes existent avant l'affichage
+            available_cols = [c for c in display_cols if c in df_pred.columns]
+            
             st.dataframe(
-                df_pred[display_cols].sort_values("popularity_probability", ascending=False),
+                df_pred[available_cols].sort_values("popularity_probability", ascending=False),
                 column_config={
                     "popularity_probability": st.column_config.ProgressColumn(
                         "Score de Popularité", format="%.2f", min_value=0, max_value=1
@@ -176,7 +191,7 @@ with tab2:
             st.plotly_chart(fig_major, use_container_width=True)
 
             sr_maj = major_counts.loc[major_counts["protected_is_major_studio"] == 1, "is_popular"].values[0]
-            sr_ind = major_counts.loc[major_counts["protected_is_major_studio"] == 0, "is_popular"].values[0]
+            sr_ind = major_counts.loc[major_counts["protected_is_major_studio"] == 0, "is_major_studio" if "is_major_studio" in major_counts else "is_popular"].values[0]
             di_major = sr_ind / sr_maj if sr_maj > 0 else 0
 
             if di_major < 0.8:
@@ -186,12 +201,20 @@ with tab2:
     else:
         st.warning("Données historiques indisponibles pour afficher l'Equity Radar.")
 
-# ==================== TAB 3 : MLOPS & HEALTH ====================
+# ==================== TAB 3 : DRIFT & PERFORMANCE ====================
 with tab3:
-    st.subheader("📈 Suivi du Modèle & Intégrité")
-    st.info("Le tracking complet des expériences est enregistré sous **MLflow**.")
-
+    st.subheader("📈 Suivi de Dérive des Données (Evidently AI)")
+    
     col_m1, col_m2, col_m3 = st.columns(3)
     col_m1.metric("Modèle Champion", "XGBoost v1.0")
     col_m2.metric("F1-Score Baseline", "0.5023")
     col_m3.metric("ROC-AUC Baseline", "0.6862")
+
+    st.markdown("---")
+
+    if drift_html is not None:
+        st.caption(f"📄 **Rapport interactif généré par Evidently AI :** `{drift_filename}`")
+        # Intégration HTML du rapport complet d'Evidently avec défilement
+        components.html(drift_html, height=1000, scrolling=True)
+    else:
+        st.warning("Aucun rapport de dérive trouvé dans `data/monitoring/`. Exécutez `python src/monitoring.py` pour le générer.")
