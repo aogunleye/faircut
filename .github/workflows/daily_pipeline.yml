@@ -9,7 +9,8 @@ on:
 jobs:
   run-batch:
     runs-on: ubuntu-latest
-
+    permissions:
+        contents: write # <--- PERMISSION D'ÉCRITURE REQUISE
     steps:
       - name: Checkout Code
         uses: actions/checkout@v4
