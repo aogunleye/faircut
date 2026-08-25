@@ -2,11 +2,9 @@ name: FairCut Daily Batch Pipeline
 
 on:
   schedule:
+    # Exécution automatique tous les matins à 6h00 UTC
     - cron: '0 6 * * *'
-  workflow_dispatch:
-
-permissions:
-  contents: write
+  workflow_dispatch: # Permet le déclenchement manuel
 
 jobs:
   run-batch:
@@ -36,14 +34,23 @@ jobs:
           python src/predict.py
 
       - name: Run Drift Monitoring
+        id: monitoring
+        continue-on-error: true
         run: |
           python src/monitoring.py
+
+      - name: Re-train Challenger Model V2 (If Drift Detected)
+        if: steps.monitoring.outcome == 'failure'
+        env:
+          TMDB_API_KEY: ${{ secrets.TMDB_API_KEY }}
+        run: |
+          python src/train.py
 
       - name: Commit and Push Results
         run: |
           git config --global user.name "github-actions[bot]"
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
-          git add data/processed/ data/monitoring/
+          git add data/processed/ data/monitoring/ models/
           git status
-          git diff-index --quiet HEAD || git commit -m "chore(data): auto-update daily predictions & drift report"
+          git diff-index --quiet HEAD || git commit -m "chore(data): auto-update daily predictions, drift report & model version"
           git push

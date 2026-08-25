@@ -1,0 +1,8 @@
+{
+    "model_version": "v1.0",
+    "model_name": "XGBoost Baseline",
+    "status": "Production",
+    "f1_score": 0.5023,
+    "disparate_impact": 0.6500,
+    "promoted_at": "2026-08-25 10:00:00"
+}

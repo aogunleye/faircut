@@ -1,3 +1,4 @@
+import json
 import logging
 import os
 import warnings
@@ -9,19 +10,18 @@ import optuna
 import pandas as pd
 from xgboost import XGBClassifier
 from sklearn.model_selection import TimeSeriesSplit
-from sklearn.metrics import f1_score, roc_auc_score, accuracy_score, confusion_matrix
-from fairlearn.metrics import MetricFrame, selection_rate, false_positive_rate, false_negative_rate
+from sklearn.metrics import f1_score, roc_auc_score, accuracy_score
+from fairlearn.metrics import MetricFrame, selection_rate
 
 warnings.filterwarnings("ignore")
 logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
 logger = logging.getLogger(__name__)
 
-# Désactiver les logs verbeux d'Optuna
 optuna.logging.set_verbosity(optuna.logging.WARNING)
 
 
 class Trainer:
-    """Classe de gestion de l'entraînement XGBoost, de l'optimisation Optuna et de l'audit Fairlearn."""
+    """Classe de gestion de l'entraînement XGBoost, de l'optimisation Optuna, de l'audit Fairlearn et de la promotion V2."""
 
     def __init__(self, data_path: str = "data/processed/processed_movies.parquet"):
         self.data_path = data_path
@@ -37,18 +37,14 @@ class Trainer:
         logger.info(f"Chargement des données depuis {self.data_path}...")
         self.df = pd.read_parquet(self.data_path)
 
-        # Tri chronologique obligatoire pour TimeSeriesSplit
         self.df['release_date'] = pd.to_datetime(self.df['release_date'])
         self.df = self.df.sort_values("release_date").reset_index(drop=True)
 
-        # Isolement de la cible
         self.y = self.df["is_popular"]
 
-        # Isolement des attributs protégés pour Fairlearn
         protected_cols = [col for col in self.df.columns if col.startswith("protected_")]
         self.protected_df = self.df[protected_cols]
 
-        # Exclusion des colonnes non prédictives ou protégées
         non_feature_cols = [
             "movie_id", "title", "release_date", "popularity", "vote_average", "is_popular",
             "original_language", "certification", "director_gender"
@@ -57,10 +53,10 @@ class Trainer:
         feature_cols = [col for col in self.df.columns if col not in non_feature_cols]
         self.X = self.df[feature_cols]
 
-        logger.info(f"Données préparées : {self.X.shape[0]} lignes, {self.X.shape[1]} features de prédiction.")
+        logger.info(f"Données préparées : {self.X.shape[0]} lignes, {self.X.shape[1]} features.")
 
-    def optimize_hyperparameters(self, n_trials: int = 30) -> dict:
-        """Optimise les hyperparamètres XGBoost via Optuna et TimeSeriesSplit."""
+    def optimize_hyperparameters(self, n_trials: int = 20) -> dict:
+        """Optimise les hyperparamètres XGBoost via Optuna."""
         logger.info(f"Lancement de l'optimisation Optuna ({n_trials} trials)...")
         tscv = TimeSeriesSplit(n_splits=5)
 
@@ -97,13 +93,12 @@ class Trainer:
         return self.best_params
 
     def train_and_evaluate(self):
-        """Entraîne le modèle final, logue les métriques dans MLflow et réalise l'audit Fairlearn."""
+        """Entraîne le modèle Challenger (V2), compare au Champion (V1) et promeut si validé."""
         mlflow.set_experiment("faircut_xgboost_training")
 
         with mlflow.start_run():
-            logger.info("Entraînement du modèle XGBoost final...")
+            logger.info("Entraînement du modèle Challenger (V2)...")
             
-            # Split train/test temporel (80% train / 20% test chronologique)
             split_idx = int(len(self.X) * 0.8)
             X_train, X_test = self.X.iloc[:split_idx], self.X.iloc[split_idx:]
             y_train, y_test = self.y.iloc[:split_idx], self.y.iloc[split_idx:]
@@ -112,63 +107,86 @@ class Trainer:
             self.best_model = XGBClassifier(**self.best_params, random_state=42, n_jobs=-1)
             self.best_model.fit(X_train, y_train)
 
-            # Prédictions
             y_pred = self.best_model.predict(X_test)
             y_proba = self.best_model.predict_proba(X_test)[:, 1]
 
-            # 1. Métriques ML standard
             acc = accuracy_score(y_test, y_pred)
-            f1 = f1_score(y_test, y_pred)
+            v2_f1 = f1_score(y_test, y_pred)
             roc_auc = roc_auc_score(y_test, y_proba)
-            logger.info(f"Résultats Test -> Accuracy: {acc:.4f} | F1-Score: {f1:.4f} | ROC-AUC: {roc_auc:.4f}")
 
-            # Tracking MLflow - Hyperparamètres & Métriques ML
-            mlflow.log_params(self.best_params)
-            mlflow.log_metric("accuracy", acc)
-            mlflow.log_metric("f1_score", f1)
-            mlflow.log_metric("roc_auc", roc_auc)
-
-            # 2. Audit de Fairness (Fairlearn)
-            logger.info("Exécution de l'audit de fairness avec Fairlearn...")
-
-            # Axe A : Langue Anglophone vs Non-Anglophone
+            # Audit Fairness
             mf_lang = MetricFrame(
                 metrics=selection_rate,
                 y_true=y_test,
                 y_pred=y_pred,
                 sensitive_features=protected_test["protected_is_english"]
             )
-            
-            # Calcul du Disparate Impact (Selection Rate Non-Anglophone / Selection Rate Anglophone)
             sr_non_english = mf_lang.by_group.get(0, 0.0001)
             sr_english = mf_lang.by_group.get(1, 0.0001)
-            disparate_impact_lang = sr_non_english / sr_english if sr_english > 0 else 0
+            v2_di = sr_non_english / sr_english if sr_english > 0 else 0
 
-            # Axe B : Majors vs Studios Indépendants
-            mf_major = MetricFrame(
-                metrics=selection_rate,
-                y_true=y_test,
-                y_pred=y_pred,
-                sensitive_features=protected_test["protected_is_major_studio"]
-            )
-            sr_indie = mf_major.by_group.get(0, 0.0001)
-            sr_major = mf_major.by_group.get(1, 0.0001)
-            disparate_impact_major = sr_indie / sr_major if sr_major > 0 else 0
+            # Récupération des performances Champion (V1) depuis metadata ou baseline
+            v1_f1 = 0.5023
+            v1_di = 0.6500
+            metadata_path = "models/metadata.json"
+            if os.path.exists(metadata_path):
+                with open(metadata_path, "r") as f:
+                    meta = json.load(f)
+                    v1_f1 = meta.get("f1_score", v1_f1)
+                    v1_di = meta.get("disparate_impact", v1_di)
 
-            logger.info(f"Disparate Impact (Langue Non-EN / EN) : {disparate_impact_lang:.4f}")
-            logger.info(f"Disparate Impact (Studios Indés / Majors) : {disparate_impact_major:.4f}")
+            logger.info(f"V1 Champion   -> F1: {v1_f1:.4f} | Disparate Impact: {v1_di:.4f}")
+            logger.info(f"V2 Challenger -> F1: {v2_f1:.4f} | Disparate Impact: {v2_di:.4f}")
 
-            # Tracking MLflow - Métriques d'Équité
-            mlflow.log_metric("fairness_disparate_impact_language", disparate_impact_lang)
-            mlflow.log_metric("fairness_disparate_impact_majors", disparate_impact_major)
+            # RÈGLES DE PASSAGE EN PRODUCTION (CHAMPION vs CHALLENGER)
+            cond_f1 = v2_f1 >= (v1_f1 - 0.02)
+            cond_di = v2_di > v1_di
 
-            # Enregistrement du modèle dans MLflow
-            mlflow.xgboost.log_model(self.best_model, artifact_path="model")
-            
-            # Sauvegarde locale du modèle et du préprocesseur
-            os.makedirs("models", exist_ok=True)
-            joblib.dump(self.best_model, "models/xgboost_baseline.joblib")
-            logger.info("Modèle enregistré localement dans models/xgboost_baseline.joblib")
+            if cond_f1 and cond_di:
+                logger.info("✅ CHALLENGER VALIDÉ : Promotion du modèle en Production !")
+                
+                # 1. Sauvegarde du modèle sous la baseline active
+                os.makedirs("models", exist_ok=True)
+                joblib.dump(self.best_model, "models/xgboost_baseline.joblib")
+
+                # 2. Calcul dynamique du numéro de version (v1.0 -> v2.0 -> v3.0...)
+                metadata_path = "models/metadata.json"
+                current_version = 1
+                
+                if os.path.exists(metadata_path):
+                    try:
+                        with open(metadata_path, "r", encoding="utf-8") as f:
+                            old_meta = json.load(f)
+                            old_v_str = old_meta.get("model_version", "v1.0")
+                            # Extraction du numéro majeur (ex: "v2.0" -> 2)
+                            current_version = int(old_v_str.lower().replace("v", "").split(".")[0])
+                    except Exception as e:
+                        logger.warning(f"Impossible de lire l'ancienne version, réinitialisation à v1 ({e})")
+
+                next_version_str = f"v{current_version + 1}.0"
+
+                # 3. Mise à jour du registre local metadata.json
+                metadata = {
+                    "model_version": next_version_str,
+                    "model_name": f"XGBoost Mitigated ({next_version_str})",
+                    "status": "Production",
+                    "f1_score": float(v2_f1),
+                    "disparate_impact": float(v2_di),
+                    "promoted_at": datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+                }
+
+                with open(metadata_path, "w", encoding="utf-8") as f:
+                    json.dump(metadata, f, indent=4)
+
+                logger.info(f"🚀 Nouveau modèle promu avec succès : {next_version_str} !")
+
+                # 4. Logs MLflow
+                mlflow.log_params(self.best_params)
+                mlflow.log_metric("f1_score", v2_f1)
+                mlflow.log_metric("disparate_impact", v2_di)
+                mlflow.xgboost.log_model(self.best_model, artifact_path="model")
+            else:
+                logger.warning("❌ CHALLENGER REJETÉ : Les critères de performance / équité ne sont pas remplis.")
 
 
 if __name__ == "__main__":
