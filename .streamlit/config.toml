@@ -1,18 +1,55 @@
+[server]
+enableStaticServing = true
+
+[[theme.fontFaces]]
+family = "SpaceGrotesk"
+url = "app/static/SpaceGrotesk-VariableFont_wght.ttf"
+
+[[theme.fontFaces]]
+family = "SpaceMono"
+url = "app/static/SpaceMono-Bold.ttf"
+style = "normal"
+weight = 700
+
+[[theme.fontFaces]]
+family = "SpaceMono"
+url = "app/static/SpaceMono-BoldItalic.ttf"
+style = "italic"
+weight = 700
+
+[[theme.fontFaces]]
+family = "SpaceMono"
+url = "app/static/SpaceMono-Italic.ttf"
+style = "italic"
+weight = 400
+
+[[theme.fontFaces]]
+family = "SpaceMono"
+url = "app/static/SpaceMono-Regular.ttf"
+style = "normal"
+weight = 400
+
 [theme]
-base = "dark"
-sidebarBorder = true
+primaryColor = "#a8c7fa"
+backgroundColor = "#131314"
+secondaryBackgroundColor = "#1e1f20"
+textColor = "#e3e2e6"
+linkColor = "#a8c7fa"
+borderColor = "#2d2f31"
+showWidgetBorder = true
+baseRadius = "0.75rem"
+buttonRadius = "full"
+font = "SpaceGrotesk"
+headingFontWeights = [600, 500, 500, 500, 500, 500]
+headingFontSizes = ["3rem", "2rem"]
+codeFont = "SpaceMono"
+codeFontSize = ".75rem"
+codeBackgroundColor = "#1e1f20"
+showSidebarBorder = true
+chartCategoricalColors = ["#a8c7fa", "#7cacf8", "#c3ebe1"]
 
-[theme.dark]
-primaryColor = "#3B82F6"                  # Accent bleu sobre et moderne (Style Vercel/Linear)
-backgroundColor = "#0D1117"               # Fond sombre anthracite très doux pour les yeux
-secondaryBackgroundColor = "#161B22"      # Cartes et conteneurs légèrement contrastés
-textColor = "#E6EDF3"                     # Blanc cassé haute lisibilité
-font = "sans serif"
-
-# Palette de graphiques Plotly harmonieuse et sobre
-chartColorPalette = ["#3B82F6", "#10B981", "#EF4444", "#F59E0B", "#8B5CF6"]
-
-[theme.dark.sidebar]
-backgroundColor = "#010409"              # Sidebar légèrement plus sombre pour marquer le relief
-textColor = "#C9D1D9"                     # Texte secondaire
-borderColor = "#21262D"                   # Séparateur très fin et sobre
+[theme.sidebar]
+backgroundColor = "#1e1f20"
+secondaryBackgroundColor = "#282a2c"
+headingFontSizes = ["1.6rem", "1.4rem", "1.2rem"]
+dataframeHeaderBackgroundColor = "#282a2c"
