@@ -90,9 +90,10 @@ class TMDBIngestor:
         return movie_ids
 
     def get_movie_details(self, movie_id: int) -> Optional[Dict[str, Any]]:
-        """Récupère tous les détails d'un film avec append_to_response en 1 seule requête HTTP."""
+        """Récupère tous les détails d'un film avec append_to_response + paramètre de langue d'image."""
         params = {
-            "append_to_response": "credits,release_dates,keywords,translations,videos,images"
+            "append_to_response": "credits,release_dates,keywords,translations,videos,images",
+            "include_image_language": "en,null",  # <--- CORRECTION DOC TMDB : Récupère les posters même sans filtre de langue restrictif
         }
         try:
             return self._fetch(f"movie/{movie_id}", params=params)
@@ -102,7 +103,7 @@ class TMDBIngestor:
 
     @staticmethod
     def parse_movie_data(data: Dict[str, Any]) -> Dict[str, Any]:
-        """Extrait et aplatit les variables cibles (XGBoost + Fairlearn)."""
+        """Extrait et aplatit les variables cibles (XGBoost + Fairlearn + Metadonnées Dashboard)."""
         # 1. Parsing des crédits (réalisateur/directrice + genre)
         crew = data.get("credits", {}).get("crew", [])
         directors = [member for member in crew if member.get("job") == "Director"]
@@ -135,6 +136,8 @@ class TMDBIngestor:
             "movie_id": data.get("id"),
             "title": data.get("title"),
             "release_date": data.get("release_date"),
+            "poster_path": data.get("poster_path"),      # <--- AJOUT : chemin relatif de l'affiche
+            "backdrop_path": data.get("backdrop_path"),  # <--- AJOUT : chemin relatif du fond d'écran
             # Features numériques
             "budget": data.get("budget", 0),
             "runtime": data.get("runtime", 0),

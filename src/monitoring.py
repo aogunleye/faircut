@@ -36,16 +36,27 @@ def run_drift_monitoring(
     df_ref = pd.read_parquet(reference_path)
     df_curr = pd.read_parquet(predictions_path)
 
-    # Sélection des métadonnées et features clés pour éviter les bugs de types
+    # Liste exhaustive des features numériques, d'équité et de prédictions
     feature_cols = [
-        "budget", "runtime", "belongs_to_collection",
-        "protected_is_english", "protected_is_major_studio", "protected_director_gender"
+        "budget",
+        "runtime",
+        "vote_average",
+        "vote_count",
+        "translation_count",
+        "belongs_to_collection",
+        "kw_gay_theme",
+        "kw_lgbt_theme",
+        "protected_is_english",
+        "protected_is_major_studio",
+        "director_gender",
+        "popularity_probability",
+        "predicted_is_popular",
     ]
-    
-    # Conservation des colonnes existantes
+
+    # Conservation des colonnes réellement existantes dans les deux datasets
     selected_cols = [c for c in feature_cols if c in df_ref.columns and c in df_curr.columns]
-    
-    # Cast explicite des données en float/int pour uniformiser
+
+    # Cast explicite des données en float pour uniformiser
     df_ref_clean = df_ref[selected_cols].astype(float)
     df_curr_clean = df_curr[selected_cols].astype(float)
 

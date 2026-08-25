@@ -1,0 +1,18 @@
+[theme]
+base = "dark"
+sidebarBorder = true
+
+[theme.dark]
+primaryColor = "#3B82F6"                  # Accent bleu sobre et moderne (Style Vercel/Linear)
+backgroundColor = "#0D1117"               # Fond sombre anthracite très doux pour les yeux
+secondaryBackgroundColor = "#161B22"      # Cartes et conteneurs légèrement contrastés
+textColor = "#E6EDF3"                     # Blanc cassé haute lisibilité
+font = "sans serif"
+
+# Palette de graphiques Plotly harmonieuse et sobre
+chartColorPalette = ["#3B82F6", "#10B981", "#EF4444", "#F59E0B", "#8B5CF6"]
+
+[theme.dark.sidebar]
+backgroundColor = "#010409"              # Sidebar légèrement plus sombre pour marquer le relief
+textColor = "#C9D1D9"                     # Texte secondaire
+borderColor = "#21262D"                   # Séparateur très fin et sobre
