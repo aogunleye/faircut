@@ -60,7 +60,7 @@ def run_drift_monitoring(
     df_ref_clean = df_ref[selected_cols].astype(float)
     df_curr_clean = df_curr[selected_cols].astype(float)
 
-    # Génération du rapport via l'API legacy
+    # Génération du rapport via legacy
     report = Report(metrics=[DataDriftPreset()])
     report.run(
         reference_data=df_ref_clean,
