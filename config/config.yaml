@@ -1,0 +1,14 @@
+data:
+  raw_path: "data/raw/raw_movies.parquet"
+  processed_path: "data/processed/processed_movies.parquet"
+  predictions_dir: "data/processed"
+  monitoring_dir: "data/monitoring"
+
+model:
+  path: "models/xgb_model.joblib"
+  target: "is_popular"
+  popularity_threshold: 15.0  # Seuil TMDB pour définir un film "populaire"
+
+tmdb:
+  base_url: "https://api.themoviedb.org/3"
+  language: "fr-FR"

@@ -1,0 +1,10 @@
+fairness:
+  protected_attributes:
+    - "protected_is_english"
+    - "protected_is_major_studio"
+    - "protected_director_gender"
+  disparate_impact_min: 0.80   # Règle des 4/5ème
+
+drift:
+  confidence_level: 0.95
+  threshold: 0.1
