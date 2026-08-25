@@ -1,0 +1,22 @@
+artifact_path: file:C:/Users/Abdul/Desktop/Projets info/faircut/mlruns/1/models/m-1adcfa80caa247a3b953970e065c3310/artifacts
+flavors:
+  python_function:
+    data: model.ubj
+    env:
+      conda: conda.yaml
+      virtualenv: python_env.yaml
+    loader_module: mlflow.xgboost
+    python_version: 3.14.7
+  xgboost:
+    code: null
+    data: model.ubj
+    model_class: xgboost.sklearn.XGBClassifier
+    model_format: ubj
+    xgb_version: 3.4.1
+mlflow_version: 3.15.1
+model_id: m-1adcfa80caa247a3b953970e065c3310
+model_size_bytes: 314574
+model_uuid: m-1adcfa80caa247a3b953970e065c3310
+prompts: null
+run_id: 0893436a975b462ca563c651b32812fe
+utc_time_created: '2026-08-25 00:53:15.679926'
