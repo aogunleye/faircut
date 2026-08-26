@@ -28,7 +28,7 @@ def load_historical_data():
     return None
 
 
-@st.cache_data
+
 def load_latest_predictions():
     files = sorted(glob("data/processed/predictions_*.parquet"))
     if files:
