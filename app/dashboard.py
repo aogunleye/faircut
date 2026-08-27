@@ -79,57 +79,81 @@ active_f1 = model_meta.get("f1_score", 0.5023)
 active_di = model_meta.get("disparate_impact", 0.6500)
 
 # ==================== BARRE LATÉRALE ====================
+
 st.sidebar.image("https://img.icons8.com/arcade/64/bot.png", width=80)
+
 st.sidebar.title("Config")
 
-# 1. Heure en live (JS)
-with st.sidebar:
-    components.html(
-        """
-        <div id="clock" style="font-family: sans-serif; font-size: 0.8rem; color: #808495; line-height: 1.5;"></div>
-        <script>
-            function updateClock() {
-                const now = new Date();
-                const dateStr = now.toLocaleDateString('fr-FR');
-                const timeStr = now.toLocaleTimeString('fr-FR');
-                document.getElementById('clock').innerHTML = 
-                    `🕒 <strong>Heure actuelle :</strong> ${dateStr} — <code style="background-color: rgba(151, 166, 195, 0.15); padding: 0.2rem 0.4rem; border-radius: 0.25rem;">${timeStr}</code>`;
-            }
-            setInterval(updateClock, 1000);
-            updateClock();
-        </script>
-        """,
-        height=35,
-    )
+
+
+# 1. Heure en live
+
+now = datetime.now()
+
+st.sidebar.caption(f" :material/schedule: **Heure actuelle :** {now.strftime('%d/%m/%Y')} — `{now.strftime('%H:%M:%S')}`")
+
+
 
 st.sidebar.markdown("---")
+
+
 
 # 2. Informations du Modèle & Dernier Run Daily Pipeline (DYNAMIQUE)
+
 if last_run_datetime is not None:
+
     formatted_run = last_run_datetime.strftime("%d/%m/%Y à %H:%M")
+
     st.sidebar.info(
+
         f"**Modèle actif :** {active_model_name} `{active_version}`\n\n"
+
         f"**Statut :** Production (Batch Daily)\n\n"
+
         f" :material/rocket_launch: **Dernier run `daily_pipeline` :**\n"
+
         f" :material/calendar_today: {formatted_run}\n"
+
         f" :material/timer: **Durée exécution :** ~1m 45s\n"
+
         f" :material/folder: **Fichier généré :** `{pred_filename}`"
+
     )
+
 else:
+
     st.sidebar.info(
+
         f"**Modèle actif :** {active_model_name} `{active_version}`\n\n"
+
         f"**Statut :** Production (Batch Daily)\n\n"
+
         f" :material/rocket_launch: **Dernier run `daily_pipeline` :** Aucun batch trouvé"
+
     )
+
+
 
 st.sidebar.markdown("---")
 
+if st.sidebar.button("Rafraîchir l'heure", icon=":material/refresh:"):
+
+    st.rerun()
+
+
+
 # Navigation Onglets
+
 tab1, tab2, tab3 = st.tabs([
+
     " :material/rocket_launch: Live Predictions",
+
     " :material/balance: Equity Radar (Fairness)",
+
     " :material/analytics: Drift & Performance (Evidently)"
-])
+
+]) 
+
 
 # ==================== TAB 1 : LIVE PREDICTIONS ====================
 with tab1:
