@@ -80,7 +80,7 @@ active_di = model_meta.get("disparate_impact", 0.6500)
 
 # ==================== BARRE LATÉRALE ====================
 st.sidebar.image("https://img.icons8.com/arcade/64/bot.png", width=80)
-st.sidebar.title("Configuration ML")
+st.sidebar.title("Config")
 
 # 1. Heure en live
 now = datetime.now()
