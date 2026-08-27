@@ -112,7 +112,7 @@ with st.sidebar:
                     const dateStr = now.toLocaleDateString('fr-FR');
                     const timeStr = now.toLocaleTimeString('fr-FR');
                     document.getElementById('clock').innerHTML = 
-                        `⏱️ <strong>Heure actuelle :</strong> ${dateStr} — <code>${timeStr}</code>`;
+                        `${dateStr} — <code>${timeStr}</code>`;
                 }
                 setInterval(updateClock, 1000);
                 updateClock();
@@ -120,10 +120,8 @@ with st.sidebar:
         </body>
         </html>
         """,
-        height=50,
+        height=45,
     )
-
-st.sidebar.markdown("---")
 
 # 2. Informations du Modèle & Dernier Run Daily Pipeline (DYNAMIQUE)
 if last_run_datetime is not None:
