@@ -127,12 +127,11 @@ st.sidebar.markdown("---")
 
 # 2. Informations du Modèle & Dernier Run Daily Pipeline (DYNAMIQUE)
 if last_run_datetime is not None:
-    formatted_run = last_run_datetime.strftime("%d/%m/%Y à %H:%M")
+    formatted_run = last_run_datetime.strftime("%d/%m/%Y at %H:%M")
     st.sidebar.info(
-        f"**Acive model:** {active_model_name} `{active_version}`\n\n",
-        f"**Statut :** Production\n\n",
-        f" :material/rocket_launch: **Last run:**\n"
-        f" :material/calendar_today: {formatted_run}\n",
+        f"**Model:** {active_model_name} `{active_version}`\n\n",
+        f"**Status :** Production\n\n",
+        f" :material/rocket_launch: **Last run:**{formatted_run}\n",
         f" :material/timer: **Execution time:** ~1m 45s\n",
         f" :material/folder: **Generated file:** `{pred_filename}`"
     )
