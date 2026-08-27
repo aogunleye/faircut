@@ -28,7 +28,6 @@ def load_historical_data():
     return None
 
 
-
 def load_latest_predictions():
     files = sorted(glob("data/processed/predictions_*.parquet"))
     if files:
@@ -81,79 +80,43 @@ active_di = model_meta.get("disparate_impact", 0.6500)
 # ==================== BARRE LATÉRALE ====================
 
 st.sidebar.image("https://img.icons8.com/arcade/64/bot.png", width=80)
-
 st.sidebar.title("Config")
 
-
-
-# 1. Heure en live
-
+# 1. Heure
 now = datetime.now()
-
 st.sidebar.caption(f" :material/schedule: **Heure actuelle :** {now.strftime('%d/%m/%Y')} — `{now.strftime('%H:%M:%S')}`")
-
-
 
 st.sidebar.markdown("---")
 
-
-
 # 2. Informations du Modèle & Dernier Run Daily Pipeline (DYNAMIQUE)
-
 if last_run_datetime is not None:
-
     formatted_run = last_run_datetime.strftime("%d/%m/%Y à %H:%M")
-
     st.sidebar.info(
-
         f"**Modèle actif :** {active_model_name} `{active_version}`\n\n"
-
         f"**Statut :** Production (Batch Daily)\n\n"
-
         f" :material/rocket_launch: **Dernier run `daily_pipeline` :**\n"
-
         f" :material/calendar_today: {formatted_run}\n"
-
         f" :material/timer: **Durée exécution :** ~1m 45s\n"
-
         f" :material/folder: **Fichier généré :** `{pred_filename}`"
-
     )
-
 else:
-
     st.sidebar.info(
-
         f"**Modèle actif :** {active_model_name} `{active_version}`\n\n"
-
         f"**Statut :** Production (Batch Daily)\n\n"
-
         f" :material/rocket_launch: **Dernier run `daily_pipeline` :** Aucun batch trouvé"
-
     )
-
-
 
 st.sidebar.markdown("---")
 
 if st.sidebar.button("Rafraîchir l'heure", icon=":material/refresh:"):
-
     st.rerun()
 
-
-
 # Navigation Onglets
-
 tab1, tab2, tab3 = st.tabs([
-
     " :material/rocket_launch: Live Predictions",
-
     " :material/balance: Equity Radar (Fairness)",
-
     " :material/analytics: Drift & Performance (Evidently)"
-
-]) 
-
+])
 
 # ==================== TAB 1 : LIVE PREDICTIONS ====================
 with tab1:
@@ -181,7 +144,7 @@ with tab1:
                 title="Répartition des probabilités attribuées par le modèle",
                 labels={"popularity_probability": "Probabilité de succès"},
             )
-            st.plotly_chart(fig, use_container_width=True)
+            st.plotly_chart(fig, width="stretch")
 
         st.markdown("###  :material/movie: Catalogue des films analysés")
 
@@ -204,9 +167,9 @@ with tab1:
                             if raw_path and raw_path not in ["None", "nan"]:
                                 clean_path = raw_path if raw_path.startswith("/") else f"/{raw_path}"
                                 poster_url = f"https://image.tmdb.org/t/p/w500{clean_path}"
-                                st.image(poster_url, use_container_width=True)
+                                st.image(poster_url, width="stretch")
                             else:
-                                st.image("https://placehold.co/300x450/161B22/E6EDF3?text=No+Poster", use_container_width=True)
+                                st.image("https://placehold.co/300x450/161B22/E6EDF3?text=No+Poster", width="stretch")
 
                             # 2. Titre du film (transformé en lien cliquable TMDB)
                             title_str = movie.get("title", "Sans titre")
@@ -274,7 +237,7 @@ with tab2:
                     color="Gender",
                     color_discrete_map={"Réalisatrices (Femmes)": "#8B5CF6", "Réalisateurs (Hommes)": "#3B82F6"},
                 )
-                st.plotly_chart(fig_gender, use_container_width=True)
+                st.plotly_chart(fig_gender, width="stretch")
 
                 sr_female_s = gender_counts.loc[gender_counts["director_gender"] == 1, "is_popular"]
                 sr_male_s = gender_counts.loc[gender_counts["director_gender"] == 2, "is_popular"]
@@ -313,7 +276,7 @@ with tab2:
                     color="Thématique",
                     color_discrete_map={"Thème Gay/LGBT": "#EC4899", "Autres thèmes": "#6B7280"},
                 )
-                st.plotly_chart(fig_lgbt, use_container_width=True)
+                st.plotly_chart(fig_lgbt, width="stretch")
 
                 sr_lgbt_s = lgbt_counts.loc[lgbt_counts[kw_col] == 1, "is_popular"]
                 sr_other_s = lgbt_counts.loc[lgbt_counts[kw_col] == 0, "is_popular"]
@@ -349,7 +312,7 @@ with tab2:
                     title="Taux de sélection par langue",
                     color="Language",
                 )
-                st.plotly_chart(fig_lang, use_container_width=True)
+                st.plotly_chart(fig_lang, width="stretch")
 
                 sr_en_series = lang_counts.loc[lang_counts["protected_is_english"] == 1, "is_popular"]
                 sr_non_en_series = lang_counts.loc[lang_counts["protected_is_english"] == 0, "is_popular"]
@@ -385,7 +348,7 @@ with tab2:
                     title="Taux de sélection par studio",
                     color="Studio",
                 )
-                st.plotly_chart(fig_major, use_container_width=True)
+                st.plotly_chart(fig_major, width="stretch")
 
                 sr_maj_series = major_counts.loc[major_counts["protected_is_major_studio"] == 1, "is_popular"]
                 sr_ind_series = major_counts.loc[major_counts["protected_is_major_studio"] == 0, "is_popular"]
@@ -427,7 +390,7 @@ with tab2:
                     color="is_popular",
                     color_continuous_scale="Viridis",
                 )
-                st.plotly_chart(fig_cert, use_container_width=True)
+                st.plotly_chart(fig_cert, width="stretch")
                 st.caption(" :material/lightbulb: **Analyse :** Évalue si le modèle favorise les classifications familiales par rapport aux contenus matures.")
 
         # 6. Portée Internationale (Nombre de Traductions)
@@ -442,7 +405,7 @@ with tab2:
                     labels={"is_popular": "Est populaire (0 = Non, 1 = Oui)", "translation_count": "Nombre de traductions"},
                     color="is_popular",
                 )
-                st.plotly_chart(fig_trans, use_container_width=True)
+                st.plotly_chart(fig_trans, width="stretch")
                 st.caption(" :material/lightbulb: **Analyse :** Mesure la pénalité subie par les œuvres à faible couverture internationale au moment de leur sortie.")
 
     else:
@@ -453,7 +416,6 @@ with tab3:
     st.subheader(" :material/trending_up: Suivi de Dérive des Données (Evidently AI)")
 
     col_m1, col_m2, col_m3 = st.columns(3)
-    # Remplacement des valeurs fixes par les variables dynamiques de metadata.json
     col_m1.metric("Modèle Champion", f"{active_model_name} ({active_version})")
     col_m2.metric("F1-Score Actif", f"{active_f1:.4f}")
     col_m3.metric("Disparate Impact", f"{active_di:.4f}")
