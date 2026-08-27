@@ -129,12 +129,12 @@ st.sidebar.markdown("---")
 if last_run_datetime is not None:
     formatted_run = last_run_datetime.strftime("%d/%m/%Y à %H:%M")
     st.sidebar.info(
-        f"**Modèle actif :** {active_model_name} `{active_version}`\n\n"
-        f"**Statut :** Production (Batch Daily)\n\n"
-        f" :material/rocket_launch: **Dernier run `daily_pipeline` :**\n"
-        f" :material/calendar_today: {formatted_run}\n"
-        f" :material/timer: **Durée exécution :** ~1m 45s\n"
-        f" :material/folder: **Fichier généré :** `{pred_filename}`"
+        f"**Acive model:** {active_model_name} `{active_version}`\n\n",
+        f"**Statut :** Production\n\n",
+        f" :material/rocket_launch: **Last run:**\n"
+        f" :material/calendar_today: {formatted_run}\n",
+        f" :material/timer: **Execution time:** ~1m 45s\n",
+        f" :material/folder: **Generated file:** `{pred_filename}`"
     )
 else:
     st.sidebar.info(
