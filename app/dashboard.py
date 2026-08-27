@@ -82,9 +82,27 @@ active_di = model_meta.get("disparate_impact", 0.6500)
 st.sidebar.image("https://img.icons8.com/arcade/64/bot.png", width=80)
 st.sidebar.title("Config")
 
-# 1. Heure
-now = datetime.now()
-st.sidebar.caption(f" :material/schedule: **Heure actuelle :** {now.strftime('%d/%m/%Y')} — `{now.strftime('%H:%M:%S')}`")
+# 1. Heure en live (JS natif via st.html)
+with st.sidebar:
+    st.html(
+        """
+        <div id="clock" style="font-family: Source Sans Pro, sans-serif; font-size: 0.875rem; color: #808495; line-height: 1.5; margin-bottom: 1rem;"></div>
+        <script>
+            function updateClock() {
+                const now = new Date();
+                const dateStr = now.toLocaleDateString('fr-FR');
+                const timeStr = now.toLocaleTimeString('fr-FR');
+                const clockElement = document.getElementById('clock');
+                if (clockElement) {
+                    clockElement.innerHTML = 
+                        `⏱️ <strong>Heure actuelle :</strong> ${dateStr} — <code style="background-color: rgba(151, 166, 195, 0.15); padding: 0.2rem 0.4rem; border-radius: 0.25rem;">${timeStr}</code>`;
+                }
+            }
+            setInterval(updateClock, 1000);
+            updateClock();
+        </script>
+        """
+    )
 
 st.sidebar.markdown("---")
 
@@ -107,9 +125,6 @@ else:
     )
 
 st.sidebar.markdown("---")
-
-if st.sidebar.button("Rafraîchir l'heure", icon=":material/refresh:"):
-    st.rerun()
 
 # Navigation Onglets
 tab1, tab2, tab3 = st.tabs([
