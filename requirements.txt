@@ -16,6 +16,7 @@ boto3>=1.28.0
 
 # Dashboard
 streamlit>=1.30.0
+streamlit-autorefresh
 plotly>=5.18.0
 
 # API & Utils
