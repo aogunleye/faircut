@@ -120,7 +120,7 @@ with st.sidebar:
         </body>
         </html>
         """,
-        height=30,
+        height=50,
     )
 
 st.sidebar.markdown("---")
