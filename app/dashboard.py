@@ -79,7 +79,7 @@ active_f1 = model_meta.get("f1_score", 0.5023)
 active_di = model_meta.get("disparate_impact", 0.6500)
 
 # ==================== BARRE LATÉRALE ====================
-st.sidebar.image("https://www.pngitem.com/pimgs/m/401-4019670_machine-learning-model-png-transparent-png.png", width=80)
+st.sidebar.image("https://img.icons8.com/isometric/50/bot.png", width=80)
 st.sidebar.title("Configuration ML")
 
 # 1. Heure en live
