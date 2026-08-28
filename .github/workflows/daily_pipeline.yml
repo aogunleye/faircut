@@ -3,7 +3,7 @@ name: FairCut Daily Batch Pipeline
 on:
   schedule:
     # Exécution automatique tous les matins à 6h00 UTC
-    - cron: '0 6 * * *'
+    - cron: '30 7 * * *'
   workflow_dispatch: # Permet le déclenchement manuel
 
 jobs:
